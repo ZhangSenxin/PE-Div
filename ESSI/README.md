@@ -1,74 +1,61 @@
 # ESSI
 
-与最终 ESSI 主方法及补充方法对应的最小计算实现。入口从已按样品拆分的目标区 DNA、氨基酸序列或已鉴定标签开始，输出单轮及联合的 `Z_total` 和 `theta_total`。不包含 FASTQ 前处理、参考库比对或重组鉴定。
+Enrichment Score Statistical Inference (ESSI) calculates enrichment Z scores and shrinkage theta scores from sequence counts across one or more comparisons.
 
-## 文件与环境
+## Installation
 
-- `multi_round_pipeline.py`：输入计数、DNA 翻译、单轮 ESSI、多轮联合和 XLSX 导出入口。
-- `isc.py`：按双尾名义 alpha 设置 k、分别拟合右尾背景的 ISC 函数；C140 直接复用。
-- `xlsx_stream.py`、`assets/xlsx_styles.xml`：流式 XLSX 导出所需文件，迁移时一起保留。
-- `test_essi.py`：公式、固定联合权重、缺失方差修正和同义编码合并检查。
+Requires Python 3.9 or later. The scoring pipeline uses the standard library; `isc.py` requires NumPy.
 
-Python >=3.9。评分入口无需第三方包；`isc.py` 使用 NumPy：
+Run commands from the repository root:
 
 ```bash
 python -m pip install -r ESSI/requirements.txt
 python ESSI/test_essi.py
 ```
 
-上述命令从包含 `ESSI/` 与 `C140/` 的代码仓库根目录运行。依赖范围是整理版的兼容要求，不用于追认历史分析环境。
+## Input
 
-## 运行
+Sample files contain one sequence or label per line, or tab-separated `ID` and `Seq` columns with a header. Each row counts as one read. The default filename pattern is `{sample}_45.txt`.
 
-```bash
-python ESSI/multi_round_pipeline.py --meta meta.csv --data /path/to/data --rules rule1.txt rule2.txt --input-type dna --reading-frame 0 --stop-policy exclude --dual-absent legacy --output results/essi
-```
-
-`--rules` 可以接收一个或多个文件，`--batch exp1,exp2` 可以指定批次。也可用 `--input-type aa` 或 `label` 从已准备的序列/标签开始。
-
-DNA 文本可为单列，或带 `ID\tSeq` 表头的双列；每行一条观测，ID 不去重。frame 0、标准遗传密码表、完整翻译；默认剔除终止、非 A/C/G/T 和不完整密码子，同义 DNA 按氨基酸汇总。
-
-meta 第一列是唯一 batch，后续具名列是样品 ID。例如：
+The metadata file assigns sample IDs to batches and comparison groups. CSV, TSV and XLSX are supported:
 
 ```text
 batch,pre pool,pos lib2,pos lib3
 exp1,Q0,Q1,Q2
 ```
 
-rules 每行左侧为 post、右侧为 pre，按行顺序联合：
+Each rules file lists post versus pre comparisons in analysis order:
 
 ```text
 pos lib2 vs pre pool
 pos lib3 vs pos lib2
 ```
 
-文件名默认 `{sample}_45.txt`，可用 `--file-template` 调整。样品合并语法如 `pos lib(2+3)` 沿用原实现。
+## Usage
 
-## 计算与结果
-
-每轮 pre/post 并集大小 K，保留读数 N，伪计数 1：
-
-```text
-f = (count + 1) / (N + K)
-S = log2(f_post / f_pre)
-v = [1/(count_post+1) + 1/(count_pre+1)] / ln(2)^2
-Z = S / sqrt(v)
-tau2 = max(0, population_variance(S) - mean(v))
-theta = tau2 / (tau2 + v) * S
+```bash
+python ESSI/multi_round_pipeline.py --meta meta.csv --data /path/to/data --rules rule1.txt rule2.txt --input-type dna --reading-frame 0 --stop-policy exclude --dual-absent legacy --output results/essi
 ```
 
-多轮先对标准 S、v 求和，估计联合 tau2 和权重，再作双端缺失补值。默认 `legacy` 同时调整 S 和 v，固定补值前的联合权重；最终 theta 不是逐轮 theta 之和。具体近似条件以 ESSI 补充方法为准。
+| Option | Description |
+| --- | --- |
+| `--rules` | One or more rules files |
+| `--batch exp1,exp2` | Batches to analyze; default: all |
+| `--input-type` | `dna`, `aa` or `label` |
+| `--file-template` | Sample filename pattern |
+| `--check-only` | Check configuration and list input files |
 
-主要结果在 `results/essi/<batch>/<rule>/analysis.xlsx` 的 `results` sheet。另有逐轮表、统计表和运行参数 JSON。全部表格为 XLSX，不输出 TSV。
+DNA input is translated using the standard genetic code. Frame 0 and stop exclusion are specified above. Reads with ambiguous bases or incomplete codons are excluded, and synonymous encodings are pooled by amino-acid sequence.
 
-通用 CLI 原有的 `filtered_by_threshold.xlsx` 使用 `Z_total>0` 加末轮计数门槛；它不是 C140 的论文阳性集合。`significance` 星号来自固定 Z 常数，`ISC_enriched` 默认 k=2，二者均不能替代 C140 的 alpha=0.0001 右尾筛选。C140 的正式入口见相邻目录。
+Use an empty output directory. Keep `xlsx_stream.py` and `assets/xlsx_styles.xml` alongside the pipeline.
 
-如需以 alpha 调用 ISC：
+## Output
 
-```python
-from isc import right_isc
-result, history = right_isc(values, alpha=0.0001, tolerance=1e-4, max_iterations=100)
-positive = values > result['threshold']
-```
+| File | Contents |
+| --- | --- |
+| `<batch>/<rule>/analysis.xlsx` | Joint `results`, individual comparisons and score summaries |
+| `<batch>/filtered_by_threshold.xlsx` | Sequences with positive joint Z scores and the specified final-post count cutoffs |
+| `statistics.xlsx` | Sample, comparison and combined statistics |
+| `manifest.json` | Parameters, input audit and run status |
 
-输出目录必须为空；不会覆盖历史结果。`--check-only` 只检查配置并展示样品计划。
+Joint scores are in the `results` sheet as `Z_total` and `theta_total`. Tables are saved as XLSX.

@@ -1,36 +1,56 @@
 # SPT-MoE
 
-与`SPT-MoE_Methods_v5`对应的最小计算方法代码。仅包含SPT-MoE最终方法，不包含其他模型、调优队列、历史图件、ESM特征或权重。湿实验不在本包范围内。
+Signal Peptide Transfer Mixture of Experts (SPT-MoE) combines HuSP pretraining with DMS adaptation and HuSP replay. Predictions use the mean of two task-head percentiles calculated against pooled training references.
 
-## 目录
+## Installation
 
-- `src/`：数据方法、ESM特征、模型、训练、推理与评价。
-- `config.json`：最终模型和训练设置。6专家、两通道逐残基ESM均值/最大值、融合维度64；P12轮→T1 39轮。
-- `metadata/`：固定DMS/HuSP成员、标签、分组、输入片段和划分；NLUC排除名单和三共享对照对齐依据。没有大型特征。
-- `METHODS_MAP.md` / `SOURCE_MAP.json`：方法与原实现对应。
-- `verification.json`：本次实际核验结果。
+Use Python 3.11 and a PyTorch build compatible with your CUDA installation.
 
-## 环境
+```bash
+pip install -r requirements.txt
+```
 
-建议Python3.11。安装`requirements.txt`；根据机器CUDA版本安装合适的PyTorch。`environment_reference.json`记录核验环境，不是跨平台锁文件。ESM2 3B提取需要独立取得官方checkpoint与足够显存，推理和训练不自动下载模型。
+ESM feature extraction requires an ESM2 3B checkpoint. Model weights and ESM features are not included.
 
-以下命令从本目录运行。所有数据/输出路径通过参数传入；目标输出使用新目录。不要把受限实验数据和大型特征直接提交到公开仓库。metadata中的序列及标签属于本项目数据，公开范围由作者确认。
+## Repository structure
 
-## 1. 数据与特征
+| Path | Contents |
+| --- | --- |
+| `src/` | Data preparation, ESM extraction, model, training and evaluation |
+| `config.json` | Model and training parameters |
+| `metadata/` | Dataset membership, labels, groups, splits and batch-alignment parameters |
+| `check.py` | Basic implementation checks |
+| `environment_reference.json` | Dependency versions used for verification |
+| `METHODS_MAP.md` / `SOURCE_MAP.json` | Method and source-code references |
+| `verification.json` | Verification results |
 
-历史成员以`metadata/{dms,dpf}_members.csv`为准，其中`dpf`指HuSP。DMS输入为信号肽前20aa，HuSP为实际片段。`sample_id`、`group_id`、`entity_group`、`split`不能随意重排或替换。label冲突的两条DMS记录已经不在成员表中。
+Run the commands below from the repository root. Use new output directories and filenames.
 
-重新构建HuSP阴性时：
+## Data preparation
+
+Dataset manifests are provided in `metadata/{dms,dpf}_members.csv`. The code uses `dpf` for HuSP. Each manifest includes `sample_id`, `input_sequence`, `group_id`, `split` and class labels. HuSP also has protein entity groups. Preserve the supplied membership and splits.
+
+DMS inputs contain the first 20 amino acids. HuSP inputs contain the selected N-terminal fragments.
+
+### HuSP negative fragments
+
+Place input FASTA files in `T1/` and `T2/` beneath the input root.
 
 ```bash
 python src/prepare.py truncate --root INPUT_FASTA_ROOT --output NEW_NEGATIVE_DIR
 ```
 
-输入根目录含`T1/`和`T2/`FASTA文件。沿用用户原始算法：seed42，长度从[8,min(30,L)]均匀整数采样，取N端；不足8aa明确排除。整理版固定文件名排序、保留FASTA记录顺序。历史脚本的st.listdir顺序未保存，因此**历史逐条片段复现以成员表/原FASTA为准**。随后调用`select_husp_positives`、`match_husp_negatives`完成已记录筛选与两阶段匹配。阳性注释输入应已限定human reviewed SIGNAL；阴性来自人源无SIGNAL类别池，不声称全部reviewed。该包不含数据库下载器。
+The script samples an integer length uniformly from `[8, min(30, L)]` and retains that N-terminal fragment. Sequences shorter than eight residues are excluded. The random seed is 42; files are sorted by name and records retain their FASTA order. Use the supplied manifests to reproduce the study's sequence membership.
 
-ISC入口是`data_methods.process_scheme_b`，传入含`exp_id,theta_total`的表，使用p=1e-6及k=norm.ppf(1-p/2)。按实验分段归一化后全局ISC，阳性取≥阈值，阴性取全局等量最低值。不要调用旧逐记录随机划分；复现最终数据使用固定成员表。
+`select_husp_positives` selects exact matches between human reviewed SIGNAL peptides and the coding library, with ATG, reading-frame and sequence-deduplication filters. `match_husp_negatives` removes accession and sequence conflicts, then applies two-stage length matching with category-stratified sampling. Negative source entries are human proteins without SIGNAL annotations.
 
-从成员表`sample_id,input_sequence`生成FASTA，ID保持唯一；特征文件用ID的SHA256命名，兼容Windows特殊字符；ESM每次一条序列：
+### DMS labels
+
+`data_methods.process_scheme_b` takes a table containing `exp_id` and `theta_total`. It normalizes positive and negative enrichment values separately within each experiment, then applies iterative sigma clipping to the pooled values with `p=1e-6` and `k=norm.ppf(1-p/2)`. Values at or above the threshold form the positive class; an equal number of the lowest values form the negative class.
+
+## ESM features
+
+Create a FASTA file from the manifest's `sample_id` and `input_sequence` columns. FASTA IDs must be unique.
 
 ```bash
 python src/extract_esm.py --fasta INPUT.fasta --checkpoint ESM2_3B.pt --output NEW_ESM_DIR
@@ -38,37 +58,55 @@ python src/prepare.py pack --manifest metadata/dms_members.csv --features DMS_ES
 python src/prepare.py pack --manifest metadata/dpf_members.csv --features HUSP_ESM_DIR --output DATA/dpf
 ```
 
-输出每个split一份CSV和NPZ。NPZ含`ids,esm,tokens,mask`；esm为(N,2560)，tokens为(N,34,8)兼容原特征接口，仅前两通道用于本模型，其余通道置0。BOS/EOS及padding不参与池化；mask=True表示真实残基。逐条`<SHA256(sample_id)>.npy`为实际残基×2560，不含BOS/EOS。
+Extraction uses layer 33 of ESM2 3B and one sequence per forward pass. Each `<SHA256(sample_id)>.npy` file contains an `(L, 2560)` array of residue features, excluding BOS and EOS tokens.
 
-## 2. 最终两阶段训练
+Packing produces a CSV and NPZ for each split:
+
+| NPZ key | Shape | Contents |
+| --- | --- | --- |
+| `ids` | `(N,)` | Sample IDs in CSV row order |
+| `esm` | `(N, 2560)` | Mean residue embedding |
+| `tokens` | `(N, 34, 8)` | Residue features; channels 0 and 1 contain the embedding mean and maximum |
+| `mask` | `(N, 34)` | True for actual residues |
+
+The model consumes the first two token channels. The remaining channels are zero. Pooling excludes padding.
+
+## Training
 
 ```bash
 python src/train.py --data DATA --output NEW_MODEL_DIR --device cuda
 ```
 
-仅读取两个域train成员；scaler按域等权、域内按唯一序列等权拟合。P用HuSP标签训练；T1复制P参数和HuSP头初始化DMS头，冻结HuSP头及输入分支/E1–E5，仅更新gating、FFN、E6及DMS头。每个DMS批次配同量HuSP回放，两损失等权；DMS逆重复权重、HuSP按唯一序列权重采样。最终12/39轮沿用原60/40轮cosine日程，不在历史val/test上早停。每阶段只保存最终选定权重。
+SPT-MoE has six experts and a 64-dimensional supplementary-feature branch. The scaler assigns equal total weight to each domain and equal weight to unique sequences within each domain.
 
-如需理解训练内长度选择，`train_stage(validation=...)`保留原checkpoint排序逻辑：P最大化HuSP AUC；T1第16轮起先满足HuSP AUC≥.95，再最大化DMS AUC；无可行候选按HuSP/DMS AUC选取，patience10/8。此函数只接受训练内折验证，不允许传入历史val/test或NLUC。本包不含完整外5/内3调度，固定最终训练入口不重新搜索。
+HuSP pretraining runs for 12 epochs. DMS adaptation starts from the pretrained weights and copies the HuSP head to initialize the DMS head. It updates the gate, FFN, final expert and DMS head while freezing the HuSP head and remaining modules. Each DMS batch is paired with an equally sized HuSP replay batch; the two classification losses have equal weight. Adaptation runs for 39 epochs. The cosine learning-rate schedules span 60 and 40 epochs, respectively.
 
-最终产物为P.pth、T1.pth、scaler.pkl、配置/训练loss及pooled_reference.npy。参考CDF以DMS1492+HuSP4552条唯一训练序列的双头MC64分数合并得到，域按实际数量合并，不是两域等权CDF。
+The training entry point uses fixed epoch counts and reads only training members. `train_stage(validation=...)` also supports training-fold checkpoint selection; historical validation, test and NLUC data must remain outside that selection.
 
-## 3. 冻结预测与外部评价
+Outputs include `P.pth`, `T1.pth`, `scaler.pkl`, training histories, configuration and `pooled_reference.npy`. The percentile reference pools 1,492 unique DMS and 4,552 unique HuSP training sequences.
+
+## Prediction
 
 ```bash
 python src/evaluate.py --model MODEL_DIR --features EXTERNAL.npz --metadata EXTERNAL.csv --output NEW_PREDICTIONS.csv
 ```
 
-CSV必须含sample_id且与NPZ ids逐条一致。相同输入/层/抽样编号绑定Philox采样流；普通dropout关闭，MC64平均margin。可另用`--sampling-group independent`进行复核，不能按相关性选采样组。
+The metadata CSV must contain `sample_id` values that match NPZ `ids` in row order. Prediction averages 64 Bernoulli-attention draws with ordinary dropout disabled. Use `--sampling-group independent` for a second fixed sampling stream.
 
-百分位定义为`(n_< + n_≤ + 1)/(2(N+1))`，分别映射两个头后取均值。CDF只来自训练序列。融合分数不是物理活性或校准概率。
+For each head, the percentile is `(n_< + n_≤ + 1)/(2(N+1))`, where `N` is the pooled reference size. The final score is the mean of the two percentiles. It is a relative score, not a calibrated probability or an activity measurement.
 
-NLUC评价调用`evaluate.merge_external`与`correlations`：输入列为sample_id、input_sequence、batch（REF/Recom）、activity、score、signalp_sp。先排除B2M/P61769及metadata列出的4条REF；只在Recom批次内平均合并相同序列。REF38、Recom30、All68；Recom活性乘`metadata/batch_alignment.json`的recom_to_ref_multiplier后与REF合并。B2M可仅作展示，不进入统计或KDE。批次内用原活性，All用对齐活性。SignalP对照使用Eukarya SP(Sec/SPI)，输入已有线上预测，不调用在线服务。
+## NLUC evaluation
 
-## 检查与限制
+`evaluate.merge_external` accepts `sample_id`, `input_sequence`, `batch` (`REF` or `Recom`), `activity`, `score` and `signalp_sp`.
+
+Exclude B2M, P61769 and the four REF entries listed in `metadata/nluc_ref_exclusions.csv` before evaluation. Average duplicate sequences within Recom only, giving REF38, Recom30 and All68. For pooled evaluation, multiply Recom activity by `recom_to_ref_multiplier` in `metadata/batch_alignment.json`. Use original activity for within-batch correlations and aligned activity for pooled correlations.
+
+`evaluate.correlations` returns Pearson and Spearman coefficients. The SignalP comparator is the Eukarya SP(Sec/SPI) score. B2M may be displayed as a reference point but is excluded from correlations and density estimates.
+
+## Checks
 
 ```bash
 python check.py
 ```
 
-该检查覆盖导入、短序列/N端截取、ISC、特征形状、两头推理复现、CDF并列值。`verification.json`另记录整理时与原实现/封存权重的核对。未重新训练，不承诺不同GPU/软件版本参数逐位相同。不把小规模检查称为全流程训练复现。完整数据收集及数据库release元数据仍需配套原始输入。本包不附授权条款或虚构数据库版本。
-
+The checks cover imports, N-terminal truncation, ISC, feature shapes, repeated MC predictions, gradients and percentile fusion.
