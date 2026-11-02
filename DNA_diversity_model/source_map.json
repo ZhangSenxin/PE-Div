@@ -1,0 +1,87 @@
+{
+  "methods_version": "1.1",
+  "sources": {
+    "code/pilot_gini_capture.py": {
+      "sha256": "d0fe843c68a864561893c72ffbddfbc96a3278135613e36fc7b22552e205bc17",
+      "functions": [
+        "gini",
+        "gamma_gini",
+        "parameters",
+        "beta_laplace_integral",
+        "expected_capture"
+      ]
+    },
+    "code/pilot_gini_grouped.py": {
+      "sha256": "e8ae0028213e8db133148b71b4fdf597b5292175b3d436e45c66634d0274bad7",
+      "functions": [
+        "bins"
+      ]
+    },
+    "code/simulate_gini_capture.py": {
+      "sha256": "9bb8e5534b873dc2959ce5d8ab3a4a777f188ee04dd1286a0a8723ccaca4edec",
+      "functions": [
+        "rng_for",
+        "lognormal_bins",
+        "weighted_gini",
+        "calibrate_lognormal",
+        "draws",
+        "summarize"
+      ]
+    },
+    "code/analyze_subsampling.py": {
+      "sha256": "d4553e9072a048173a1e1a9bc992cde132a653876a05146ca2349de2a59e6b4b",
+      "functions": [
+        "nested_draws"
+      ]
+    },
+    "code/diversity_model.py": {
+      "functions": [
+        "descriptive_estimators",
+        "reverse_unique_bounds"
+      ],
+      "sha256": "2bafa4b1ecbb4785b2f34d653caef85a3b803d22aeb71f1fcafcfa9e7fb8dbed"
+    },
+    "code/analyze_final_samples.py": {
+      "functions": [
+        "metadata",
+        "count_inputs"
+      ],
+      "sha256": "b9836c083f819b040d8603b0d47c298ebbb5ee8c97590c1dfaccacffecc203ac"
+    },
+    "results_gini_10samples_20261020/code/update_results.py": {
+      "functions": [
+        "depth",
+        "raw_update",
+        "common_summary"
+      ],
+      "sha256": "31cdb2a413706372b07d54974b3c32e49c273e0bf200e11e51f0edb49bfe71a1"
+    }
+  },
+  "export_date": "2026-11-02",
+  "scope": "Methods v1.1; jack1 and raw-Gini only; no plotting",
+  "port_changes": [
+    "Removed historical paths, append-only sample10 branch and plotting",
+    "Central config and CLI; derived Ns, M, beta; optional replicate persistence",
+    "Explicit parameter/grid checks and status flags; median/range table"
+  ],
+  "checks": {
+    "status": "passed",
+    "items": [
+      "all Python modules compile/import without legacy project imports",
+      "analytical means match original functions exactly at 3 selected positions",
+      "3 x 33 small Dirichlet/equal-abundance draws match original arrays exactly (64 bins)",
+      "small lognormal calibration and 33 control draws match original exactly",
+      "jackknife finite-read correction and nested read draws match original",
+      "2 existing sample-1 conditional inversions match archived point/95% endpoints within 0.02 types",
+      "incompatible inputs, missing prediction grids and parameter mismatch handled",
+      "CLI help, toy read counting/20 nested replicates, 2-node simulation and inference passed; default no replicate files",
+      "CLI curves and one-position lognormal mean sensitivity passed with small configuration"
+    ],
+    "full_analysis_rerun": false,
+    "versions": {
+      "numpy": "1.26.4",
+      "scipy": "1.15.2",
+      "pandas": "2.2.3"
+    }
+  }
+}

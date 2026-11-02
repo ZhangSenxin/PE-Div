@@ -1,0 +1,42 @@
+{
+  "status": "pass",
+  "frozen_T1_state_keys_compatible": true,
+  "original_vs_extracted_forward_max_abs": 0.0,
+  "reference_unique_counts": {
+    "dms": 1492,
+    "dpf": 4552
+  },
+  "pooled_cdf_matches_original_formula": true,
+  "metadata_groups_disjoint": true,
+  "basic_checks": "check.py passed on CPU; 2 draws only",
+  "not_run": [
+    "full retraining",
+    "ESM extraction",
+    "full MC64 external prediction",
+    "FASTA parsing (Biopython not installed in verification environment)"
+  ],
+  "files": {
+    "check.py": "92ecb550422608f447b0bde52302d90828709e79bd5281563b4d7ae34ddf1568",
+    "config.json": "bca9ef180677abbe0f67887e76986575a97abab01128daf445150aabea92c788",
+    "environment_reference.json": "160570e0190cd4a6e6be8ffe540f3ec180e5c5b12aef72fbb8a0b5d5df529f0e",
+    "METHODS_MAP.md": "e5012709e1a4c304ba642c85aa925d039db5f12015e385b15295d7a9a0e3ddad",
+    "README.md": "6a8f542f41921bc45c19a6607ef32cab2aa5dbead782ffb014978a90cdddbe67",
+    "requirements.txt": "2f313acd6935ca150029b4fa7ed2982fd9103279ddc97639a85856695334aee1",
+    "SOURCE_MAP.json": "ec2ea56b08b0b29551865907e31c91695d8aaaff291f6986affcfd46a0988d2c",
+    "verification.json": "ff3853dc0e2b32b9392b02dbcb0267784d22730b76eed4b60a437c663ffb7530",
+    "metadata\\batch_alignment.json": "d76db55db73d713e71c8dbe47c75c4f4d641580efc20689b0f37d6273bd3db3f",
+    "metadata\\dms_members.csv": "687fd352fd6ae08330da7c723981978a35de6842cc4f82ab387c1cde160f2006",
+    "metadata\\dpf_members.csv": "5a8f09f6a98e5c06d78f3a25479bd6d79f54aec41c0e2709eb65f4134dc8925a",
+    "metadata\\nluc_ref_exclusions.csv": "22def25fb8ba4938a66b1855cc7974a47febe0c3c13e985e19153fd7618c23a9",
+    "metadata\\shared_control_audit.csv": "6985361e717ef18ace59ac2230db3d610dbf9dcb76d54f18d28a3c833cfa33b4",
+    "src\\bernoulli_validation.py": "6418b1042ad460df08624350ee2910f6865380c879a23c7ddf6bdaeb8f9f6bf5",
+    "src\\cached_dms_mc.py": "88b5bb36ff166e69b394558fb69848f208e5d21a2e865f88b7decb194f053e88",
+    "src\\data_methods.py": "1b4777c4fd14a6f6f32c0b3d4e86137f35277dea59a9766f4c7d9fdd36af3949",
+    "src\\evaluate.py": "ef834f6f14f70366e505d43199fdebd507bb0ca692d6ce5fcfe8025754bfb10e",
+    "src\\extract_esm.py": "0f3b4260415df8ec49242229125426ebfd78e4d9d3dc3ea6ac3f6c070834e313",
+    "src\\inference.py": "a60a9fa6ba2906c5e5fb43c3f3d17ff0447877661f5476e625f8ab0be214b23d",
+    "src\\model_configs.py": "ed8c0e3d816082d94f522478c1062bf8cc7ebb36f3049543206b593426270add",
+    "src\\prepare.py": "dc66e37d25c7457cc06acfceabd0ed687c619ada75edd7bef92c7b76a7a0574c",
+    "src\\train.py": "e3ec0dfcc9ccc36832b630452b8ddf71555f1a19eb59a785c60271dc8809c8e9"
+  }
+}

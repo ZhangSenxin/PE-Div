@@ -1,0 +1,6 @@
+{
+  "shared_control_gain_recom_over_ref": 1.2548420878414068,
+  "recom_to_ref_multiplier": 0.7969130217175063,
+  "normalization": "geometric_mean_of_shared_control_mean_ratios",
+  "background_available": false
+}

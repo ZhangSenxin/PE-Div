@@ -1,0 +1,167 @@
+[
+  {
+    "source": "code/model_configs.py",
+    "symbol": "SEED",
+    "start": 25,
+    "end": 25
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "INFERENCE_CONFIG",
+    "start": 361,
+    "end": 370
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "BERNOULLI_VALIDATION_CONFIG",
+    "start": 377,
+    "end": 396
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "BERNOULLI_EXECUTION_CONFIG",
+    "start": 397,
+    "end": 397
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "set_seed",
+    "start": 460,
+    "end": 466
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "MAX_L_EVAL",
+    "start": 708,
+    "end": 708
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "BST",
+    "start": 863,
+    "end": 873
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "BHA",
+    "start": 876,
+    "end": 910
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "prepare_deterministic_inference",
+    "start": 924,
+    "end": 934
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "CSA2",
+    "start": 937,
+    "end": 971
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "MoE",
+    "start": 974,
+    "end": 1035
+  },
+  {
+    "source": "code/model_configs.py",
+    "symbol": "Phase6TaskMoE",
+    "start": 1280,
+    "end": 1305
+  },
+  {
+    "source": "code/bernoulli_validation.py",
+    "copy": "verbatim"
+  },
+  {
+    "source": "code/cached_dms_mc.py",
+    "copy": "verbatim"
+  },
+  {
+    "source": "code/isc_threshold_v5.py",
+    "symbol": "isc_threshold",
+    "sha256": "c45212f0e0272c6e25cb118b880b19eb3f3794e2254439c938befb37c8f04616"
+  },
+  {
+    "source": "code/isc_threshold_v5.py",
+    "symbol": "normalize_theta_per_exp",
+    "sha256": "29a8b324f40fca77575346934eb16516c2e1c4f0a53145dc6061379203b328f8"
+  },
+  {
+    "source": "code/isc_threshold_v5.py",
+    "symbol": "format_p_value",
+    "sha256": "0b1216ecf9e19aeacb8cc5d9f34d0ffe880be058f275ea0d25c9a81b6417b03f"
+  },
+  {
+    "source": "code/isc_threshold_v5.py",
+    "symbol": "process_scheme_b",
+    "sha256": "21a6da5576ff5a6123312ea755cc1fe13a86ae3890700df063815e9b3d860acd"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "largest_remainder",
+    "sha256": "f806c8a9cb292fae378f39ec2d8c6ed7387db2fe50a901efdb8e098b27b23ab6"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "hist_counter",
+    "sha256": "a6d1df7a96d6d6b6916a0c650d73a9ead8ce70fd6282acd1a77cf871d3fc9c97"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "tvd_hist",
+    "sha256": "73b2232bbbf1b692fbd569381aedc795fa9ecbc68c58ceb8a040747477944848"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "max_feasible_alpha",
+    "sha256": "d6856626bf551a88b2c73326bdc33d2758b4c80e9bf5591d9f2e0d377b47ce0d"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "quotas_from_shape",
+    "sha256": "b6258709c95551d9a0906690c28a74174c937818f740fbec469b710d106ced8f"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "quotas_exact_pos",
+    "sha256": "9a8900d91a67734425bdd721498cfdd06280cee25802c86c759d169327ce33f1"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "draw_rows_by_len_cat",
+    "sha256": "3f752d8d1095ef1acae0afee7773c48a9399331b56d59b706614d71da1f7e51e"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "stage1_global",
+    "sha256": "710db6f3340a67fffbc64676ab4dca1b2c843926151cc272902720b41dd6cd0a"
+  },
+  {
+    "source": "code/dpf_neg_downsample.py",
+    "symbol": "stage2_global",
+    "sha256": "1f75d81935976c2552b08aaed43faf31f4cd39a7af720a9890a9c97f23e739c3"
+  },
+  {
+    "source": "code/dpf_rebuild_nluc_ref_holdout.py",
+    "symbol": "assign_entities_to_row_targets",
+    "sha256": "6a5dbe9589906ea1e389e59d9a663078ffc970df000eb2b6389069a17e551d7b"
+  },
+  {
+    "source": "code/grouped_retrain.py",
+    "symbol": "dl_inputs",
+    "sha256": "76bd33489f72c07a3462f9b03b258f47bf40f8d4a1fed59986c3e96f2839266f"
+  },
+  {
+    "source": "code/phase6_transfer_ranking.py",
+    "symbol": "TaskMC",
+    "sha256": "ab987d0a77c4fbe350519bcc7ae4050e5220806dedeefe07322ac74c69c97c57"
+  },
+  {
+    "source": "code/analyze_transfer_head_ensemble.py",
+    "symbol": "percentile",
+    "sha256": "429ae0fa68724e210ba1dc952e058e159730d569d9292a2cad3748a32221a6ce"
+  }
+]

@@ -1,0 +1,65 @@
+{
+  "meta": "meta.csv",
+  "rules": [
+    "rule1.txt"
+  ],
+  "batches": [
+    "exp1",
+    "exp2"
+  ],
+  "file_template": "{sample}_45.txt",
+  "input_type": "dna",
+  "reading_frame": 0,
+  "stop_policy": "exclude",
+  "dual_absent": "legacy",
+  "selection": {
+    "alpha": 0.0001,
+    "tolerance": 0.0001,
+    "max_iterations": 100,
+    "sheet": "results",
+    "sequence_column": "label",
+    "score_column": "Z_total"
+  },
+  "families": {
+    "sequence_length": 15,
+    "minimum_plot_nodes": 10
+  },
+  "plot": {
+    "marker_area": 52.0,
+    "palette": [
+      "#EF5C55",
+      "#A3DACA",
+      "#46A9E0"
+    ],
+    "color_levels": 257,
+    "figsize": [
+      4.8,
+      4.9
+    ],
+    "png_dpi": 600,
+    "x_limits": [
+      -1.16,
+      1.16
+    ],
+    "y_limits": [
+      0.8,
+      140
+    ],
+    "reference_x": [
+      -0.5,
+      0.5
+    ],
+    "y_ticks": [
+      1,
+      3,
+      10,
+      30,
+      100
+    ],
+    "example_targets": [
+      -1,
+      0,
+      1
+    ]
+  }
+}
